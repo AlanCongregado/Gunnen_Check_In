@@ -24,15 +24,37 @@ export default function ResetSession() {
 
     const run = async () => {
       setStatus("Limpiando almacenamiento local...");
-      clearStorage();
-      setStatus("Cerrando sesión...");
+      try {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+      } catch (e) {
+        console.error("Local storage clear failed", e);
+      }
+      
+      setStatus("Desregistrando Service Workers...");
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (let registration of registrations) {
+            await registration.unregister();
+            console.log("SW unregistered");
+          }
+        } catch (e) {
+          console.error("SW unregister failed", e);
+        }
+      }
+
+      setStatus("Cerrando sesión de Supabase...");
       try {
         await signOut();
       } catch {
         // ignore
       }
-      setStatus("Redirigiendo al login...");
-      window.location.href = "/login?force=1";
+      
+      setStatus("Listo. Redirigiendo...");
+      setTimeout(() => {
+        window.location.href = "/login?logout=1";
+      }, 1000);
     };
 
     run();
