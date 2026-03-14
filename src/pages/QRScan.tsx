@@ -16,7 +16,10 @@ export default function QRScan() {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
         rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true
+        showTorchButtonIfSupported: true,
+        videoConstraints: {
+          facingMode: "environment"
+        }
       },
       /* verbose= */ false
     );
