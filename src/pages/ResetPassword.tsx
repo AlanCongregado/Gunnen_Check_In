@@ -68,10 +68,11 @@ export default function ResetPassword() {
     console.log("ResetPassword: Iniciando actualización de contraseña...");
     
     try {
-      // We rely on the session already being parsed by Supabase's internal hash handling.
-      // Calling getSession() here is risky and can cause "Lock broken" (contention).
+      // Small defensive delay to allow Supabase to finish background storage synchronization
+      // and lock release after the onAuthStateChange event.
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Attempt update
+      // We rely on the session already being parsed by Supabase's internal hash handling.
       const { error: updateError } = await supabase.auth.updateUser({
         password: password
       });
