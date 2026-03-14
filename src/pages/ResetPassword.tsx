@@ -15,14 +15,29 @@ export default function ResetPassword() {
   const [showPass, setShowPass] = useState(false);
 
   useEffect(() => {
+    console.log("ResetPassword: Componente montado. Hash:", window.location.hash ? "Presente" : "Ausente");
+    
     // Check if we have a recovery session
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError("La sesión de recuperación ha expirado o es inválida. Intenta solicitar un nuevo link.");
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log("ResetPassword: Sesión inicial:", { hasSession: !!session, error: sessionError });
+      
+      if (!session && !window.location.hash) {
+        setError("No se detectó una sesión de recuperación. Asegúrate de usar el link de tu correo.");
       }
     }
+    
+    // Listener for auth state changes (Supabase might take a second to parse hash)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("ResetPassword: Auth state change:", event, { hasSession: !!session });
+      if (session) {
+        setError(null);
+      }
+    });
+
     checkSession();
+    
+    return () => subscription.unsubscribe();
   }, []);
 
   const validatePassword = (pass: string) => {
@@ -48,12 +63,21 @@ export default function ResetPassword() {
     }
 
     setLoading(true);
+    console.log("ResetPassword: Iniciando actualización de contraseña...");
+    
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("No hay una sesión activa para cambiar la contraseña. Intenta recargar la página.");
+      }
+
       await updatePassword(password);
+      console.log("ResetPassword: Contraseña actualizada con éxito.");
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {
-      setError(err.message || "No se pudo actualizar la contraseña");
+      console.error("ResetPassword: Error al actualizar:", err);
+      setError(err.message || "No se pudo actualizar la contraseña. Revisa tu conexión.");
     } finally {
       setLoading(false);
     }
