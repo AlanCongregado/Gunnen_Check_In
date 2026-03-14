@@ -74,7 +74,7 @@ const sessionOnlyStorage = {
   }
 };
 
-let supabaseClient: SupabaseClient;
+export let supabase: SupabaseClient;
 
 export type PersistenceType = "local" | "session" | "memory";
 
@@ -83,7 +83,13 @@ export function initSupabaseClient(persistence: PersistenceType = "local") {
                   persistence === "session" ? sessionOnlyStorage : 
                   memoryStorage;
 
-  supabaseClient = createClient(supabaseUrl as string, supabaseAnonKey as string, {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Supabase Error: Configuración incompleta.createClient NO fue llamado.");
+    // Return a dummy client or partial singleton to avoid crashing other imports immediately
+    return {} as SupabaseClient;
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: persistence !== "memory",
       autoRefreshToken: true,
@@ -91,14 +97,14 @@ export function initSupabaseClient(persistence: PersistenceType = "local") {
       storage
     }
   });
-  return supabaseClient;
 }
 
 export function getSupabaseClient() {
-  return supabaseClient;
+  return supabase;
 }
 
-export let supabase = initSupabaseClient("local");
+// Initial initialization
+supabase = initSupabaseClient("local");
 
 export function updatePersistence(persistence: PersistenceType) {
   supabase = initSupabaseClient(persistence);
