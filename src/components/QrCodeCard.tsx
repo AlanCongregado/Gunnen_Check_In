@@ -38,7 +38,7 @@ export default function QrCodeCard() {
       </div>
 
       {url && (
-        <div className="print-only text-center">
+        <div className="print-only text-center py-8">
           <div className="inline-block rounded-xl border border-[rgba(49,71,11,0.15)] p-4 bg-white">
             <QRCodeCanvas value={url} size={320} includeMargin />
           </div>

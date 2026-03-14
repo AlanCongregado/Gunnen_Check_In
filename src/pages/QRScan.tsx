@@ -11,7 +11,13 @@ export default function QRScan() {
   useEffect(() => {
     const scanner = new Html5QrcodeScanner(
       "reader",
-      { fps: 10, qrbox: { width: 250, height: 250 } },
+      { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true
+      },
       /* verbose= */ false
     );
 
@@ -20,7 +26,7 @@ export default function QRScan() {
       // The Box QR generated in QrCodeCard.tsx points to origin + /scan
       const appUrl = window.location.origin;
       const scanUrl = `${appUrl}/scan`;
-      const isBoxQR = decodedText === appUrl || decodedText === scanUrl || decodedText === `${appUrl}/`;
+      const isBoxQR = decodedText === appUrl || decodedText === scanUrl || decodedText === `${appUrl}/` || decodedText.includes("/scan");
 
       if (isBoxQR) {
         scanner.clear().then(() => {
@@ -40,7 +46,7 @@ export default function QRScan() {
         } else {
           setError("QR no contiene ID de clase. Redirigiendo a selección manual...");
           setTimeout(() => {
-            scanner.clear().then(() => navigate("/select-class"));
+            scanner.clear().then(() => navigate("/select-class")).catch(() => navigate("/select-class"));
           }, 2000);
         }
       } catch (e) {
@@ -52,7 +58,7 @@ export default function QRScan() {
         } else {
           setError("Código QR no reconocido. Redirigiendo a selección manual...");
           setTimeout(() => {
-            scanner.clear().then(() => navigate("/select-class"));
+            scanner.clear().then(() => navigate("/select-class")).catch(() => navigate("/select-class"));
           }, 2000);
         }
       }
@@ -62,9 +68,24 @@ export default function QRScan() {
       // ignore failures (constant scanning)
     }
 
+    // Attempt to start immediately
     scanner.render(onScanSuccess, onScanFailure);
 
+    // Give a small delay and try to click the "Request Camera Permissions" or "Start Scanning" button automatically if it's there
+    const autoStartInterval = setInterval(() => {
+      const startButton = document.getElementById("html5-qrcode-button-camera-start");
+      const permissionButton = document.getElementById("html5-qrcode-button-camera-permission");
+      if (permissionButton) {
+        permissionButton.click();
+        clearInterval(autoStartInterval);
+      } else if (startButton) {
+        startButton.click();
+        clearInterval(autoStartInterval);
+      }
+    }, 500);
+
     return () => {
+      clearInterval(autoStartInterval);
       scanner.clear().catch(err => console.error("Failed to clear scanner", err));
     };
   }, [navigate]);

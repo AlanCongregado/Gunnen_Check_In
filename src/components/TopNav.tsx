@@ -87,7 +87,7 @@ export default function TopNav({
         </div>
 
         {/* Links */}
-        <div className="flex lg:flex-col items-center gap-2 lg:gap-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-1 lg:pb-0">
+        <div className="flex lg:flex-col items-center justify-center lg:justify-start gap-x-2 gap-y-3 lg:gap-1 flex-wrap lg:flex-nowrap pb-1 lg:pb-0">
           {links.map((link) => {
             const isActive = window.location.pathname === link.to;
             return (

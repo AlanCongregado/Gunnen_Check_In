@@ -142,4 +142,9 @@ h1, h2, h3, h4 {
 @media print {
   body { background: white; }
   .no-print { display: none !important; }
+  .print-only { display: block !important; }
+}
+
+.print-only {
+  display: none !important;
 }

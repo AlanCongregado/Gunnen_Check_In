@@ -55,6 +55,25 @@ export default function ConfirmCheckIn() {
     };
   }, [classId]);
 
+  // Auto-checkin logic
+  useEffect(() => {
+    if (sessionInfo && session?.user?.id && !status && !error && !submitting) {
+      // Check if user has an active reservation
+      supabase
+        .from("reservations")
+        .select("id, status")
+        .eq("user_id", session.user.id)
+        .eq("class_id", classId)
+        .single()
+        .then(({ data: reservation }) => {
+          if (reservation && reservation.status === "confirmed") {
+            console.log("Auto-confirming reservation...");
+            handleCheckIn();
+          }
+        });
+    }
+  }, [sessionInfo, session, classId]);
+
   async function handleCheckIn() {
     if (!classId || !session?.user?.id) return;
     setSubmitting(true);
@@ -97,7 +116,7 @@ export default function ConfirmCheckIn() {
         if (resError) throw resError;
       }
 
-      setStatus("Check-in registrado. ¡Buen entrenamiento!");
+      setStatus("¡Check-in confirmado! Buen entrenamiento.");
       setTimeout(() => navigate("/athlete"), 1200);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar el check-in");
