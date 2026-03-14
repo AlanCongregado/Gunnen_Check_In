@@ -1,0 +1,145 @@
+@font-face {
+  font-family: "Dream Avenue";
+  src: url("/fonts/DreamAvenue-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --brand: #31470b;
+  --brand-light: #526b28;
+  --brand-dark: #1f2d07;
+  --cream: #fbfaf5;
+  --sand: #f2efe1;
+  --text: #1a1c14;
+  --muted: #5c614b;
+  --white: #ffffff;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(49, 71, 11, 0.08);
+  --soft-shadow: 0 10px 40px -10px rgba(49, 71, 11, 0.08);
+  --card-shadow: 0 12px 48px -12px rgba(49, 71, 11, 0.12);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top left, var(--cream) 0%, var(--sand) 100%);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Dream Avenue", ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--brand-dark);
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: var(--white);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 16px -4px rgba(49, 71, 11, 0.25);
+  border: 1px solid var(--brand-dark);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--brand-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(49, 71, 11, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  border: 1px solid var(--glass-border);
+  color: var(--brand);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  box-shadow: var(--soft-shadow);
+}
+
+.btn-outline:hover {
+  background: var(--white);
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+.card:hover {
+  box-shadow: 0 20px 60px -15px rgba(49, 71, 11, 0.15);
+  transform: translateY(-2px);
+}
+
+.badge-soft {
+  background: rgba(49, 71, 11, 0.06);
+  color: var(--brand);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px) translateY(-10px); }
+  to { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0) translateY(0); }
+  to { opacity: 0; transform: translateX(20px) translateY(-10px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-in {
+  animation: toast-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile-first adjustments */
+@media (max-width: 640px) {
+  h1 { font-size: 2rem; }
+  .card { border-radius: 24px; }
+  button, input, select { font-size: 16px; }
+}
+
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+}
