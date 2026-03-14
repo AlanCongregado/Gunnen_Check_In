@@ -66,19 +66,43 @@ export default function ResetPassword() {
     console.log("ResetPassword: Iniciando actualización de contraseña...");
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Refresh session just in case it's stale
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) throw sessionErr;
+      
       if (!session) {
-        throw new Error("No hay una sesión activa para cambiar la contraseña. Intenta recargar la página.");
+        throw new Error("No hay una sesión activa para cambiar la contraseña. El link puede haber expirado o ya fue usado. Por favor, solicita uno nuevo.");
       }
 
-      await updatePassword(password);
+      console.log("ResetPassword: Sesión válida detectada. Llamando a updatePassword...");
+      
+      // Attempt update
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (updateError) {
+        console.error("ResetPassword: Supabase devolvió un error:", updateError);
+        // Supabase 422 errors usually mean "New password should be different from the old password" 
+        // or the password doesn't meet the project's security policy.
+        let friendlyMessage = updateError.message;
+        if (updateError.status === 422) {
+          friendlyMessage = "La contraseña no es válida para esta cuenta. " + 
+            (updateError.message.includes("different") ? "No puedes usar la misma contraseña anterior." : updateError.message);
+        }
+        throw new Error(friendlyMessage);
+      }
+
       console.log("ResetPassword: Contraseña actualizada con éxito.");
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {
-      console.error("ResetPassword: Error al actualizar:", err);
-      setError(err.message || "No se pudo actualizar la contraseña. Revisa tu conexión.");
+      console.error("ResetPassword: Catch block error:", err);
+      // Ensure we extract the message clearly
+      const finalMessage = err.message || JSON.stringify(err) || "Error desconocido al actualizar";
+      setError(finalMessage);
     } finally {
+      console.log("ResetPassword: Finalizando estado de carga.");
       setLoading(false);
     }
   }
