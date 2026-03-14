@@ -6,6 +6,7 @@ import type { ClassSession } from "../lib/types";
 import TopNav from "../components/TopNav";
 import AestheticHeader from "../components/AestheticHeader";
 import { signOut } from "../lib/auth";
+import { translateError } from "../lib/errorTranslations";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -42,7 +43,7 @@ export default function ConfirmCheckIn() {
         setSessionInfo(data as ClassSession);
       } catch (err: any) {
         if (!mounted) return;
-        setError(err instanceof Error ? err.message : "No se pudo cargar la clase");
+        setError(translateError(err));
       } finally {
         if (!mounted) return;
         setLoading(false);
@@ -118,8 +119,8 @@ export default function ConfirmCheckIn() {
 
       setStatus("¡Check-in confirmado! Buen entrenamiento.");
       setTimeout(() => navigate("/athlete"), 1200);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar el check-in");
+    } catch (err: any) {
+      setError(translateError(err));
     } finally {
       setSubmitting(false);
     }

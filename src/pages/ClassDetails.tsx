@@ -5,6 +5,7 @@ import type { ClassSession, Reservation } from "../lib/types";
 import TopNav from "../components/TopNav";
 import AestheticHeader from "../components/AestheticHeader";
 import { signOut } from "../lib/auth";
+import { translateError } from "../lib/errorTranslations";
 
 type AthleteHealthInfo = {
   id: string;
@@ -79,7 +80,7 @@ export default function ClassDetails() {
         setCheckins((checkinResult.data as any) ?? []);
       } catch (err: any) {
         if (!mounted) return;
-        setError(err instanceof Error ? err.message : "No se pudo cargar la clase");
+        setError(translateError(err));
       } finally {
         if (!mounted) return;
         setLoading(false);

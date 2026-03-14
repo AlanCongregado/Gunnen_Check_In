@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import TopNav from "../components/TopNav";
 import { signOut } from "../lib/auth";
+import { translateError } from "../lib/errorTranslations";
 
 export default function QRScan() {
   const navigate = useNavigate();
@@ -24,9 +25,20 @@ export default function QRScan() {
       /* verbose= */ false
     );
 
+    const autoStartInterval = setInterval(() => {
+      const startButton = document.getElementById("html5-qrcode-button-camera-start");
+      const permissionButton = document.getElementById("html5-qrcode-button-camera-permission");
+      if (permissionButton) {
+        permissionButton.click();
+        clearInterval(autoStartInterval);
+      } else if (startButton) {
+        startButton.click();
+        clearInterval(autoStartInterval);
+      }
+    }, 500);
+
     function onScanSuccess(decodedText: string) {
       // 1. Check if it's the general "Box QR" (the app URL itself)
-      // The Box QR generated in QrCodeCard.tsx points to origin + /scan
       const appUrl = window.location.origin;
       const scanUrl = `${appUrl}/scan`;
       const isBoxQR = decodedText === appUrl || decodedText === scanUrl || decodedText === `${appUrl}/` || decodedText.includes("/scan");
@@ -71,21 +83,11 @@ export default function QRScan() {
       // ignore failures (constant scanning)
     }
 
-    // Attempt to start immediately
-    scanner.render(onScanSuccess, onScanFailure);
-
-    // Give a small delay and try to click the "Request Camera Permissions" or "Start Scanning" button automatically if it's there
-    const autoStartInterval = setInterval(() => {
-      const startButton = document.getElementById("html5-qrcode-button-camera-start");
-      const permissionButton = document.getElementById("html5-qrcode-button-camera-permission");
-      if (permissionButton) {
-        permissionButton.click();
-        clearInterval(autoStartInterval);
-      } else if (startButton) {
-        startButton.click();
-        clearInterval(autoStartInterval);
-      }
-    }, 500);
+    try {
+      scanner.render(onScanSuccess, onScanFailure);
+    } catch (err: any) {
+      setError(translateError(err));
+    }
 
     return () => {
       clearInterval(autoStartInterval);
