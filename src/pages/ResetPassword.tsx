@@ -17,38 +17,16 @@ export default function ResetPassword() {
   const [authStable, setAuthStable] = useState(false);
 
   useEffect(() => {
-    console.log("ResetPassword: Componente montado. Hash:", window.location.hash ? "Presente" : "Ausente");
-    
-    // Check if we have a recovery session
-    async function checkSession() {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log("ResetPassword: Sesión inicial:", { hasSession: !!session, error: sessionError });
-        
-        if (session) {
-          setAuthStable(true);
-          setError(null);
-        } else if (!window.location.hash) {
-          setAuthStable(true);
-          setError("No se detectó una sesión de recuperación. Asegúrate de usar el link de tu correo.");
-        }
-      } catch (err) {
-        console.error("ResetPassword: Error en checkSession:", err);
-      }
-    }
-    
     // Listener for auth state changes (Supabase takes time to parse hash)
+    // Removed redundant checkSession() to avoid "Lock broken" contention
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("ResetPassword: Evento de Auth:", event, { hasSession: !!session });
       
-      // These events indicate Supabase is done with the URL hash
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         setAuthStable(true);
         if (session) setError(null);
       }
     });
-
-    checkSession();
     
     // Timeout as safety measure: if after 5s nothing happened, assume it's stable (or failed)
     const timer = setTimeout(() => {
@@ -90,8 +68,8 @@ export default function ResetPassword() {
     console.log("ResetPassword: Iniciando actualización de contraseña...");
     
     try {
-      // NOTE: We rely on the session already being parsed by detectSessionInUrl/onAuthStateChange
-      // Calling getSession() here can cause "Lock broken" (contention)
+      // We rely on the session already being parsed by Supabase's internal hash handling.
+      // Calling getSession() here is risky and can cause "Lock broken" (contention).
       
       // Attempt update
       const { error: updateError } = await supabase.auth.updateUser({

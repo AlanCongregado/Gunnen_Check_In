@@ -40,6 +40,10 @@ export function translateError(err: any): string {
     return "Tu sesión ha expirado o el link ya no es válido. Solicita uno nuevo.";
   }
 
+  if (message.includes("Lock broken") || message.includes("steal")) {
+    return "Estamos sincronizando tu sesión de recuperación. Por favor, espera un segundo e intenta de nuevo.";
+  }
+
   // Traducción genérica de mensajes comunes de Supabase si no coinciden arriba
   const translations: Record<string, string> = {
     "network error": "Error de conexión. Revisa tu internet.",
