@@ -4,6 +4,7 @@ import { signOut, updatePassword } from "../lib/auth";
 import TopNav from "../components/TopNav";
 import AestheticHeader from "../components/AestheticHeader";
 import Toast from "../components/Toast";
+import { translateError } from "../lib/errorTranslations";
 
 type UserProfile = {
   id: string;
@@ -155,7 +156,7 @@ export default function Profile() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: any) {
-      setPasswordError(err.message || "Error al actualizar la contraseña");
+      setPasswordError(translateError(err));
     } finally {
       setPasswordLoading(false);
     }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { updatePassword } from "../lib/auth";
+import type { UserRole } from "../lib/types";
+import { translateError } from "../lib/errorTranslations";
 import BrandMark from "../components/BrandMark";
 import AestheticHeader from "../components/AestheticHeader";
 
@@ -112,8 +113,7 @@ export default function ResetPassword() {
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {
       console.error("ResetPassword: Catch block error:", err);
-      const finalMessage = err.message || "Error al actualizar. Intenta solicitar un nuevo link.";
-      setError(finalMessage);
+      setError(translateError(err));
     } finally {
       setLoading(false);
     }

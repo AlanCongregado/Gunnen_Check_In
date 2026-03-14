@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signIn, resetPasswordForEmail } from "../lib/auth";
 import BrandMark from "../components/BrandMark";
+import { translateError } from "../lib/errorTranslations";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,9 +23,8 @@ export default function Login() {
       const data = await signIn({ email, password, rememberMe });
       const role = (data.user?.user_metadata?.role as "coach" | "athlete" | undefined) ?? "athlete";
       navigate(role === "coach" ? "/coach" : "/athlete", { replace: true });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudo iniciar sesión";
-      setError(message);
+    } catch (err: any) {
+      setError(translateError(err));
     } finally {
       setLoading(false);
     }
@@ -38,8 +38,8 @@ export default function Login() {
     try {
       await resetPasswordForEmail(email);
       setResetSent(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al enviar el link");
+    } catch (err: any) {
+      setError(translateError(err));
     } finally {
       setLoading(false);
     }

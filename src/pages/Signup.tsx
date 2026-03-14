@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signUp } from "../lib/auth";
 import type { UserRole } from "../lib/types";
 import BrandMark from "../components/BrandMark";
+import { translateError } from "../lib/errorTranslations";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -27,9 +28,8 @@ export default function Signup() {
         return;
       }
       navigate("/athlete", { replace: true });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudo registrar";
-      setError(message);
+    } catch (err: any) {
+      setError(translateError(err));
     } finally {
       setLoading(false);
     }
