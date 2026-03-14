@@ -12,9 +12,14 @@ export default function RootRedirect() {
     );
   }
 
+  console.log("RootRedirect: State", { hasSession: !!session, hasProfile: !!profile });
+
   if (!session || !profile) {
+    console.log("RootRedirect: Redirecting to /login");
     return <Navigate to="/login" replace />;
   }
 
-  return <Navigate to={profile.role === "coach" ? "/coach" : "/athlete"} replace />;
+  const target = profile.role === "coach" ? "/coach" : "/athlete";
+  console.log("RootRedirect: Redirecting to", target);
+  return <Navigate to={target} replace />;
 }
