@@ -233,8 +233,8 @@ export default function AthleteHome() {
                   <p className="text-3xl font-black">{nextReservation.class.class_time.slice(0, 5)} <span className="text-sm font-normal opacity-60">hs</span></p>
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-1 text-white">Entrenamiento Confirmado</h4>
-                  <p className="text-white/70 text-sm font-medium">Coach: {nextReservation.class.coach?.name ?? "Personal del Box"}</p>
+                  <h4 className="text-xl font-bold mb-1 text-white">Entrenamiento Reservado</h4>
+                  <p className="text-white/70 text-sm font-medium">Coach {nextReservation.class.coach?.name ?? "Principal"}</p>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-4">
                   <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
@@ -323,12 +323,19 @@ export default function AthleteHome() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5 text-[var(--muted)]">
+                            <p className="text-[10px] uppercase tracking-widest font-black mb-1 text-[var(--muted)]">
                               {isFull ? "Sin cupo" : "Disponibles"}
                             </p>
-                            <p className={`text-xl font-bold ${isFull ? "text-red-500" : "text-[var(--brand)]"}`}>
-                              {session.capacity - reservedCount} / {session.capacity}
-                            </p>
+                            <div className="flex flex-col items-end gap-1">
+                              <p className={`text-2xl font-black leading-none ${isFull ? "text-red-500" : "text-[var(--brand)]"}`}>
+                                {session.capacity - reservedCount} <span className="text-[10px] font-bold opacity-60">lugares</span>
+                              </p>
+                              {!isReserved && !isFull && (session.capacity - reservedCount) <= 3 && (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-tighter animate-pulse border border-amber-200">
+                                  ¡Últimos lugares!
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
@@ -338,7 +345,7 @@ export default function AthleteHome() {
                               {session.coach?.name?.charAt(0) ?? "C"}
                             </div>
                             <p className="text-sm font-bold text-[var(--brand-dark)]">
-                              {session.coach?.name ?? "Coach"}
+                              Coach {session.coach?.name ?? "Principal"}
                             </p>
                           </div>
                           

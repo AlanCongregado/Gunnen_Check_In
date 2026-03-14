@@ -22,6 +22,7 @@ export default function ReserveClass() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [userReservations, setUserReservations] = useState<string[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -33,26 +34,32 @@ export default function ReserveClass() {
         endDate.setDate(endDate.getDate() + 7);
         const endDateStr = endDate.toISOString().split("T")[0];
 
-        const { data, error } = await (supabase
-          .from("classes")
-          .select(`
-            id,
-            class_date,
-            class_time,
-            coach_id,
-            capacity,
-            created_at,
-            coach:users(id,name,email),
-            reservations:reservations(count)
-          `)
-          .gte("class_date", todayStr)
-          .lt("class_date", endDateStr)
-          .order("class_date")
-          .order("class_time") as any);
+        const [classesRes, reservationsRes] = await Promise.all([
+          supabase
+            .from("classes")
+            .select(`
+              id,
+              class_date,
+              class_time,
+              coach_id,
+              capacity,
+              created_at,
+              coach:users(id,name,email),
+              reservations:reservations(count)
+            `)
+            .gte("class_date", todayStr)
+            .lt("class_date", endDateStr)
+            .order("class_date")
+            .order("class_time"),
+          session?.user?.id 
+            ? supabase.from("reservations").select("class_id").eq("user_id", session.user.id).neq("status", "canceled")
+            : Promise.resolve({ data: [] })
+        ]);
 
         if (!mounted) return;
-        if (error) throw error;
-        setClasses((data as any) ?? []);
+        if (classesRes.error) throw classesRes.error;
+        setClasses((classesRes.data as any) ?? []);
+        setUserReservations((reservationsRes.data as any[])?.map(r => r.class_id) || []);
       } catch (err: any) {
         if (!mounted) return;
         setError(err instanceof Error ? err.message : "No se pudieron cargar las clases");
@@ -61,12 +68,13 @@ export default function ReserveClass() {
         setLoading(false);
       }
     }
-    fetchData();
+    if (session?.user?.id) fetchData();
+    else if (!session) setLoading(false);
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [session?.user?.id]);
 
   async function handleReserve() {
     if (!session?.user?.id || !selected) return;
@@ -163,11 +171,11 @@ export default function ReserveClass() {
                               {session.class_time.slice(0, 5)} <span className="text-sm font-normal opacity-70">hs</span>
                             </p>
                             <div className="text-right">
-                              <p className="text-[10px] uppercase tracking-widest font-bold mb-0.5 text-[var(--muted)]">
-                                {isFull ? "Sin cupo" : "Lugares"}
+                              <p className="text-[10px] uppercase tracking-widest font-black mb-1 text-[var(--muted)]">
+                                {isFull ? "Sin cupo" : "Disponibles"}
                               </p>
-                              <p className={`text-2xl font-bold ${isFull ? "text-red-500" : "text-[var(--brand)]"}`}>
-                                {session.capacity - reservedCount} / {session.capacity}
+                              <p className={`text-2xl font-black ${isFull ? "text-red-500" : "text-[var(--brand)]"}`}>
+                                {session.capacity - reservedCount} <span className="text-[10px] font-bold opacity-60">lugares</span>
                               </p>
                             </div>
                           </div>
@@ -177,21 +185,28 @@ export default function ReserveClass() {
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold uppercase ${isFull ? "bg-gray-200 text-gray-500" : "bg-[var(--brand-light)]/20 text-[var(--brand)]"}`}>
                                 {session.coach?.name?.charAt(0) ?? "C"}
                               </div>
-                              <p className={`text-sm font-medium ${isFull ? "text-[var(--muted)]" : "text-[var(--brand-dark)]"}`}>
-                                {session.coach?.name ?? "Coach"}
+                              <p className={`text-sm font-bold ${isFull ? "text-[var(--muted)]" : "text-[var(--brand-dark)]"}`}>
+                                Coach {session.coach?.name ?? "Principal"}
                               </p>
                             </div>
 
-                            {isSelected && !isFull && !status && (
+                            {userReservations.includes(session.id) ? (
+                              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-100 animate-in zoom-in">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                </svg>
+                                RESERVADA
+                              </div>
+                            ) : isSelected && !isFull && !status && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleReserve();
                                 }}
                                 disabled={submitting}
-                                className="px-6 py-2.5 rounded-xl bg-[var(--brand)] text-white text-xs font-bold shadow-lg hover:bg-[var(--brand-dark)] transition-all animate-in fade-in zoom-in duration-300 active:scale-95 disabled:opacity-50"
+                                className="px-6 py-2.5 rounded-xl bg-[var(--brand)] text-white text-[10px] font-black uppercase tracking-wider shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-50"
                               >
-                                {submitting ? "Reservando..." : "Reservar clase"}
+                                {submitting ? "..." : "Confirmar"}
                               </button>
                             )}
                           </div>

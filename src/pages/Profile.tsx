@@ -196,12 +196,12 @@ export default function Profile() {
           </div>
         )}
 
-        {/* METRICS SECTION - COACH ONLY */}
-        {profile?.role === "coach" && (
-          <section className="space-y-4">
-            <div className="flex items-center gap-3">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--muted)]">Rendimiento</h3>
-              <div className="flex-grow h-px bg-[var(--glass-border)]" />
+        {/* METRICS SECTION - NOW FOR ALL USERS */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--muted)]">Tu Rendimiento</h3>
+            <div className="flex-grow h-px bg-[var(--glass-border)]" />
+            {(metrics?.engagement_status || profile?.role === 'coach') && (
               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
                 metrics?.engagement_status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                 metrics?.engagement_status === 'At Risk' ? 'bg-red-50 text-red-700 border-red-100' :
@@ -209,26 +209,26 @@ export default function Profile() {
               }`}>
                 {metrics?.engagement_status || 'Regular'}
               </span>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)]">
+              <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Clases / Sem</p>
+              <p className="text-3xl font-bold text-[var(--brand-dark)] tracking-tighter">{metrics?.classes_per_week || 0}</p>
             </div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)]">
-                <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Clases / Sem</p>
-                <p className="text-3xl font-bold text-[var(--brand-dark)] tracking-tighter">{metrics?.classes_per_week || 0}</p>
-              </div>
-              <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)]">
-                <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Total Clases</p>
-                <p className="text-3xl font-bold text-[var(--brand)] tracking-tighter">{metrics?.total_completed || 0}</p>
-              </div>
-              <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)] col-span-2 sm:col-span-1">
-                <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Último Entrenamiento</p>
-                <p className="text-sm font-bold text-[var(--brand-dark)] pt-3">
-                  {metrics?.last_attendance ? new Date(metrics.last_attendance).toLocaleDateString() : 'Aún nada!'}
-                </p>
-              </div>
+            <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)]">
+              <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Total Clases</p>
+              <p className="text-3xl font-bold text-[var(--brand)] tracking-tighter">{metrics?.total_completed || 0}</p>
             </div>
-          </section>
-        )}
+            <div className="rounded-3xl card p-5 bg-white/40 border border-[var(--glass-border)] col-span-2 sm:col-span-1">
+              <p className="text-[10px] uppercase font-bold text-[var(--muted)] mb-1">Último Entrenamiento</p>
+              <p className="text-sm font-bold text-[var(--brand-dark)] pt-3">
+                {metrics?.last_attendance ? new Date(metrics.last_attendance).toLocaleDateString() : '¡A entrenar!'}
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* EDITABLE SECTIONS */}
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">

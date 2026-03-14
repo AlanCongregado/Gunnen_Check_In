@@ -67,7 +67,7 @@ export default function ConfirmCheckIn() {
         .eq("class_id", classId)
         .single()
         .then(({ data: reservation }) => {
-          if (reservation && reservation.status === "confirmed") {
+          if (reservation && reservation.status === "reserved") {
             console.log("Auto-confirming reservation...");
             handleCheckIn();
           }

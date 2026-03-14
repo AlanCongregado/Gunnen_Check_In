@@ -38,11 +38,13 @@ export default function QrCodeCard() {
       </div>
 
       {url && (
-        <div className="print-only text-center py-8">
-          <div className="inline-block rounded-xl border border-[rgba(49,71,11,0.15)] p-4 bg-white">
-            <QRCodeCanvas value={url} size={320} includeMargin />
+        <div className="print-only text-center py-10 bg-white">
+          <h1 className="text-4xl font-black text-[var(--brand-dark)] mb-8 uppercase tracking-widest">Check-in Gunnen</h1>
+          <div className="inline-block rounded-[2.5rem] border-4 border-[var(--brand)] p-8 bg-white shadow-2xl">
+            <QRCodeCanvas value={url} size={400} includeMargin />
           </div>
-          <p className="mt-4 text-sm text-[#31470b]">Escanea para hacer check-in</p>
+          <p className="mt-8 text-2xl font-black text-[var(--brand)] uppercase tracking-[0.3em]">Escanea para entrenar</p>
+          <p className="mt-2 text-sm text-[var(--muted)] font-medium">gunnenapp.netlify.app</p>
         </div>
       )}
 
