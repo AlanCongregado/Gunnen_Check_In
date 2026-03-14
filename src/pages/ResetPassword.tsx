@@ -13,31 +13,54 @@ export default function ResetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [authStable, setAuthStable] = useState(false);
 
   useEffect(() => {
     console.log("ResetPassword: Componente montado. Hash:", window.location.hash ? "Presente" : "Ausente");
     
     // Check if we have a recovery session
     async function checkSession() {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log("ResetPassword: Sesión inicial:", { hasSession: !!session, error: sessionError });
-      
-      if (!session && !window.location.hash) {
-        setError("No se detectó una sesión de recuperación. Asegúrate de usar el link de tu correo.");
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log("ResetPassword: Sesión inicial:", { hasSession: !!session, error: sessionError });
+        
+        if (session) {
+          setAuthStable(true);
+          setError(null);
+        } else if (!window.location.hash) {
+          setAuthStable(true);
+          setError("No se detectó una sesión de recuperación. Asegúrate de usar el link de tu correo.");
+        }
+      } catch (err) {
+        console.error("ResetPassword: Error en checkSession:", err);
       }
     }
     
-    // Listener for auth state changes (Supabase might take a second to parse hash)
+    // Listener for auth state changes (Supabase takes time to parse hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("ResetPassword: Auth state change:", event, { hasSession: !!session });
-      if (session) {
-        setError(null);
+      console.log("ResetPassword: Evento de Auth:", event, { hasSession: !!session });
+      
+      // These events indicate Supabase is done with the URL hash
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+        setAuthStable(true);
+        if (session) setError(null);
       }
     });
 
     checkSession();
     
-    return () => subscription.unsubscribe();
+    // Timeout as safety measure: if after 5s nothing happened, assume it's stable (or failed)
+    const timer = setTimeout(() => {
+      setAuthStable(current => {
+        if (!current) console.warn("ResetPassword: Auth no se estabilizó a tiempo, forzando estado estable.");
+        return true;
+      });
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   const validatePassword = (pass: string) => {
@@ -66,15 +89,8 @@ export default function ResetPassword() {
     console.log("ResetPassword: Iniciando actualización de contraseña...");
     
     try {
-      // Refresh session just in case it's stale
-      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr) throw sessionErr;
-      
-      if (!session) {
-        throw new Error("No hay una sesión activa para cambiar la contraseña. El link puede haber expirado o ya fue usado. Por favor, solicita uno nuevo.");
-      }
-
-      console.log("ResetPassword: Sesión válida detectada. Llamando a updatePassword...");
+      // NOTE: We rely on the session already being parsed by detectSessionInUrl/onAuthStateChange
+      // Calling getSession() here can cause "Lock broken" (contention)
       
       // Attempt update
       const { error: updateError } = await supabase.auth.updateUser({
@@ -83,12 +99,10 @@ export default function ResetPassword() {
 
       if (updateError) {
         console.error("ResetPassword: Supabase devolvió un error:", updateError);
-        // Supabase 422 errors usually mean "New password should be different from the old password" 
-        // or the password doesn't meet the project's security policy.
         let friendlyMessage = updateError.message;
         if (updateError.status === 422) {
-          friendlyMessage = "La contraseña no es válida para esta cuenta. " + 
-            (updateError.message.includes("different") ? "No puedes usar la misma contraseña anterior." : updateError.message);
+          friendlyMessage = "La contraseña no es válida. " + 
+            (updateError.message.includes("different") ? "No puedes usar la misma anterior." : updateError.message);
         }
         throw new Error(friendlyMessage);
       }
@@ -98,11 +112,9 @@ export default function ResetPassword() {
       setTimeout(() => navigate("/login"), 3000);
     } catch (err: any) {
       console.error("ResetPassword: Catch block error:", err);
-      // Ensure we extract the message clearly
-      const finalMessage = err.message || JSON.stringify(err) || "Error desconocido al actualizar";
+      const finalMessage = err.message || "Error al actualizar. Intenta solicitar un nuevo link.";
       setError(finalMessage);
     } finally {
-      console.log("ResetPassword: Finalizando estado de carga.");
       setLoading(false);
     }
   }
@@ -117,12 +129,14 @@ export default function ResetPassword() {
           <h1 className="text-3xl font-bold text-[var(--brand-dark)]">
             Nueva contraseña
           </h1>
-          <p className="text-[var(--muted)] font-medium text-sm">
-            Elige una contraseña segura para tu cuenta.
-          </p>
+          {!authStable && (
+            <p className="text-[var(--brand)] animate-pulse text-xs font-bold uppercase tracking-widest">
+              Validando link de recuperación...
+            </p>
+          )}
         </div>
 
-        <form onSubmit={handleReset} className="rounded-[2.5rem] card p-8 sm:p-10 space-y-6 bg-white/60 backdrop-blur-2xl border border-[var(--glass-border)] shadow-2xl">
+        <form onSubmit={handleReset} className={`rounded-[2.5rem] card p-8 sm:p-10 space-y-6 bg-white/60 backdrop-blur-2xl border border-[var(--glass-border)] shadow-2xl transition-opacity duration-500 ${!authStable ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
           {success ? (
             <div className="text-center space-y-4 py-4">
               <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-100">
@@ -141,6 +155,7 @@ export default function ResetPassword() {
                   <input
                     type={showPass ? "text" : "password"}
                     required
+                    disabled={!authStable}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full rounded-2xl border border-[var(--glass-border)] bg-white/50 px-5 py-4 focus:border-[var(--brand)] outline-none transition-all"
@@ -159,6 +174,7 @@ export default function ResetPassword() {
                   <input
                     type={showPass ? "text" : "password"}
                     required
+                    disabled={!authStable}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="w-full rounded-2xl border border-[var(--glass-border)] bg-white/50 px-5 py-4 focus:border-[var(--brand)] outline-none transition-all"
@@ -168,14 +184,14 @@ export default function ResetPassword() {
               </div>
 
               {error && (
-                <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-red-700 text-xs font-medium text-center">
+                <div className="rounded-2xl bg-red-50 border border-red-100 p-4 text-red-700 text-xs font-medium text-center shadow-sm">
                   {error}
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !authStable}
                 className="w-full rounded-2xl btn-primary py-4 font-bold tracking-wide shadow-xl active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {loading ? "Actualizando..." : "Restablecer contraseña"}
