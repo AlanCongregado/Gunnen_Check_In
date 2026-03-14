@@ -166,50 +166,50 @@ export default function ClassDetails() {
         {!loading && sessionInfo && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Quick Summary Card */}
-            <div className="bg-gradient-to-br from-[var(--brand-dark)] to-[#1a2b00] rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-10">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20" />
+            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-[var(--glass-border)] relative overflow-hidden group mb-10 translate-y-0 hover:-translate-y-1 transition-all duration-500">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--brand)]/5 rounded-full blur-3xl -mr-20 -mt-20" />
               <div className="relative z-10 space-y-8">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-3xl font-black mb-1">CLASE {sessionInfo.class_time.slice(0, 5)}</h3>
-                    <p className="text-white/50 text-[10px] uppercase tracking-[0.2em] font-bold">Estado de ocupación</p>
+                    <h3 className="text-3xl font-black mb-1 text-[var(--brand-dark)]">CLASE {sessionInfo.class_time.slice(0, 5)}</h3>
+                    <p className="text-[var(--muted)] text-[10px] uppercase tracking-[0.2em] font-bold">Estado de ocupación</p>
                   </div>
                   <div className="text-right">
                     <p className="text-4xl font-black text-[var(--brand)]">{classMetrics.total}</p>
-                    <p className="text-white/40 text-[9px] uppercase tracking-widest font-bold">Atletas</p>
+                    <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-bold">Atletas</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-white/10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-gray-100">
                   <div className="space-y-1">
-                    <p className="text-white/40 text-[9px] uppercase tracking-widest font-black">Lugares Libres</p>
-                    <p className="text-xl font-bold">{classMetrics.available}</p>
+                    <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Lugares Libres</p>
+                    <p className="text-xl font-bold text-[var(--brand-dark)]">{classMetrics.available}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-white/40 text-[9px] uppercase tracking-widest font-black">Lesiones Activas</p>
-                    <p className={`text-xl font-bold ${classMetrics.injuries > 0 ? 'text-red-400' : 'text-white'}`}>
+                    <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Lesiones Activas</p>
+                    <p className={`text-xl font-bold ${classMetrics.injuries > 0 ? 'text-red-500' : 'text-[var(--brand-dark)]'}`}>
                       {classMetrics.injuries}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-white/40 text-[9px] uppercase tracking-widest font-black">Principiantes</p>
-                    <p className="text-xl font-bold text-blue-300">{classMetrics.beginners}</p>
+                    <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Principiantes</p>
+                    <p className="text-xl font-bold text-blue-500">{classMetrics.beginners}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-white/40 text-[9px] uppercase tracking-widest font-black">Niveles Altos</p>
+                    <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Niveles Altos</p>
                     <p className="text-xl font-bold text-[var(--brand-light)]">{classMetrics.intermediates + classMetrics.advanced}</p>
                   </div>
                 </div>
 
                 {/* Level Distribution Bar */}
                 <div className="pt-4 space-y-2">
-                  <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-white/40">
+                  <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-[var(--muted)]">
                     <span>Distribución de Nivel</span>
                     <span>{classMetrics.total} Atletas</span>
                   </div>
-                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden flex">
+                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex">
                     <div 
-                      className="h-full bg-blue-400 transition-all duration-1000" 
+                      className="h-full bg-blue-500 transition-all duration-1000" 
                       style={{ width: `${classMetrics.total > 0 ? (classMetrics.beginners / classMetrics.total) * 100 : 0}%` }}
                     />
                     <div 
