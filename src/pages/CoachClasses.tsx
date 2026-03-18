@@ -119,7 +119,7 @@ export default function CoachClasses() {
       setError(error.message);
     } else if (data) {
       setClasses((prev) => [...prev, data as ClassSession]);
-      setForm({ class_date: "", class_time: "", capacity: 16 });
+      setForm({ class_date: "", class_time: "", capacity: 22 });
     }
 
     setCreating(false);

@@ -93,6 +93,9 @@ export default function ReserveClass() {
         setError(data.error || "Ocurrió un error al reservar");
       } else {
         setStatus("Reserva confirmada. ¡Te esperamos!");
+        if (selected) {
+          setUserReservations(prev => [...prev, selected]);
+        }
       }
     } catch (err: any) {
       setError(err.message || "Error de conexión con el servidor");

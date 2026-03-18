@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabaseClient";
@@ -56,8 +56,11 @@ export default function ConfirmCheckIn() {
     };
   }, [classId]);
 
+  const autoCheckedRef = useRef(false);
+
   // Auto-checkin logic
   useEffect(() => {
+    if (autoCheckedRef.current) return;
     if (sessionInfo && session?.user?.id && !status && !error && !submitting) {
       // Check if user has an active reservation
       supabase
@@ -69,6 +72,7 @@ export default function ConfirmCheckIn() {
         .then(({ data: reservation }) => {
           if (reservation && reservation.status === "reserved") {
             console.log("Auto-confirming reservation...");
+            autoCheckedRef.current = true;
             handleCheckIn();
           }
         });

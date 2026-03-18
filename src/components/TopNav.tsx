@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { UserRole } from "../lib/types";
 import BrandMark from "./BrandMark";
 import { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ export default function TopNav({
   role: UserRole;
   onSignOut?: () => void;
 }) {
+  const location = useLocation();
   const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function TopNav({
         {/* Links */}
         <div className="flex lg:flex-col items-center justify-around lg:justify-start gap-x-2 gap-y-3 lg:gap-1 flex-wrap lg:flex-nowrap pb-1 lg:pb-0">
           {links.map((link) => {
-            const isActive = window.location.pathname === link.to;
+            const isActive = location.pathname === link.to;
             return (
               <Link
                 key={link.to}

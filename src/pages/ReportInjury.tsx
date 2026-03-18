@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import TopNav from "../components/TopNav";
 import AestheticHeader from "../components/AestheticHeader";
+import { signOut } from "../lib/auth";
 
 const BODY_PARTS = [
   "Cuello", "Hombro Izquierdo", "Hombro Derecho", "Espalda Alta", "Lumbares",
@@ -175,7 +176,7 @@ export default function ReportInjury() {
           </button>
         </div>
 
-        <TopNav role={profile?.role === "coach" ? "coach" : "athlete"} onSignOut={() => {}} />
+        <TopNav role={profile?.role === "coach" ? "coach" : "athlete"} onSignOut={() => signOut()} />
       </div>
     </div>
   );

@@ -179,6 +179,7 @@ export default function AthleteHome() {
 
   const nextReservation = userReservations.find(res => {
     if (res.status !== 'reserved' && res.status !== 'waitlisted') return false;
+    if (!res.class) return false;
     const now = new Date();
     const [hours, minutes] = res.class.class_time.split(":").map(Number);
     const classDate = new Date(res.class.class_date + "T" + res.class.class_time);

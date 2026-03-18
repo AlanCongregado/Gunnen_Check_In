@@ -34,6 +34,8 @@ export default function MyReservations() {
         return "presente";
       case "absent":
         return "ausente";
+      case "waitlisted":
+        return "en espera";
       default:
         return status;
     }
@@ -52,7 +54,7 @@ export default function MyReservations() {
         const { data, error } = await (supabase
           .from("reservations")
           .select(
-            "id,user_id,class_id,status,created_at,class:classes(id,class_date,class_time,capacity)"
+            "id,user_id,class_id,status,created_at,class:classes(id,class_date,class_time,capacity,coach:users(name))"
           )
           .eq("user_id", userId)
           .order("created_at", { ascending: false }) as any);
@@ -151,7 +153,7 @@ export default function MyReservations() {
               </div>
               <div className="mt-6 flex items-center justify-between pt-4 border-t border-[var(--glass-border)]">
                 <p className="text-sm font-medium text-[var(--brand-dark)]">
-                  Coach: {"Coach"} {/* Coach name not available in current data structure */}
+                Coach: {(item.class as any)?.coach?.name ?? "Principal"}
                 </p>
                 <div className="flex items-center gap-2 text-xs font-bold text-[var(--muted)] uppercase tracking-tight">
                   <BrandMark size={16} />

@@ -60,7 +60,7 @@ export default function Login() {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="rounded-[2.5rem] card p-8 sm:p-10 space-y-8 bg-white/60 backdrop-blur-2xl">
+        <form onSubmit={isResetting ? handleReset : handleLogin} className="rounded-[2.5rem] card p-8 sm:p-10 space-y-8 bg-white/60 backdrop-blur-2xl">
           <div className="space-y-6">
             <div className="space-y-2">
               <label className="text-xs uppercase tracking-widest font-bold text-[var(--muted)] ml-1">Email</label>
@@ -123,7 +123,6 @@ export default function Login() {
 
           <button
             type="submit"
-            onClick={isResetting ? handleReset : handleLogin}
             disabled={loading || (isResetting && resetSent)}
             className="w-full rounded-2xl btn-primary py-4 font-bold tracking-wide shadow-2xl active:scale-[0.98] transition-all disabled:opacity-50"
           >
