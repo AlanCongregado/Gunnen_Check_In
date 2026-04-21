@@ -11,7 +11,7 @@ export default function CoachEditClass() {
   const [form, setForm] = useState({
     class_date: "",
     class_time: "",
-    capacity: 16
+    capacity: "" as string | number
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -38,7 +38,7 @@ export default function CoachEditClass() {
         setForm({
           class_date: session.class_date,
           class_time: session.class_time,
-          capacity: session.capacity
+          capacity: session.capacity ?? ""
         });
       } catch (err: any) {
         if (!mounted) return;
@@ -66,7 +66,7 @@ export default function CoachEditClass() {
       .update({
         class_date: form.class_date,
         class_time: form.class_time,
-        capacity: Number(form.capacity)
+        capacity: form.capacity === "" ? null : Number(form.capacity)
       })
       .eq("id", id);
 
@@ -163,14 +163,14 @@ export default function CoachEditClass() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium">Cupo</label>
+                <label className="text-sm font-medium">Cupo <span className="text-[#6a6f57] font-normal">(opcional)</span></label>
                 <input
                   type="number"
                   min={1}
-                  required
+                  placeholder="Sin límite"
                   value={form.capacity}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, capacity: Number(e.target.value) }))
+                    setForm((f) => ({ ...f, capacity: e.target.value }))
                   }
                   className="w-full rounded-lg border border-[rgba(49,71,11,0.2)] px-3 py-2"
                 />

@@ -19,7 +19,10 @@ export default function RootRedirect() {
     return <Navigate to="/login" replace />;
   }
 
-  const target = profile.role === "coach" ? "/coach" : "/athlete";
+  const target =
+    profile.role === "coach" ? "/coach" :
+    profile.role === "admin" ? "/admin" :
+    "/athlete";
   console.log("RootRedirect: Redirecting to", target);
   return <Navigate to={target} replace />;
 }

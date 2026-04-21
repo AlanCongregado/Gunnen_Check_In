@@ -23,6 +23,8 @@ import Profile from "./pages/Profile";
 import StudentDirectory from "./pages/StudentDirectory";
 import ReportInjury from "./pages/ReportInjury";
 import ResetPassword from "./pages/ResetPassword";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminAthletes from "./pages/AdminAthletes";
 
 const Placeholder = ({ title }: { title: string }) => (
   <div className="min-h-screen p-4 sm:p-6">
@@ -168,8 +170,24 @@ export default function App() {
         <Route
           path="/coach/students"
           element={
-            <ProtectedRoute role="coach">
+            <ProtectedRoute role={["coach", "admin"]}>
               <StudentDirectory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/athletes"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminAthletes />
             </ProtectedRoute>
           }
         />

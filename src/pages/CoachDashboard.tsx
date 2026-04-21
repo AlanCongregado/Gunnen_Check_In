@@ -189,7 +189,8 @@ export default function CoachDashboard() {
         <div className="grid gap-6">
           {classes.map((session) => {
             const counts = stats[session.id] ?? { reserved: 0, present: 0, total_active: 0 };
-            const available = Math.max(0, session.capacity - counts.total_active);
+            const hasLimit = session.capacity !== null;
+            const available = hasLimit ? Math.max(0, session.capacity! - counts.total_active) : null;
             return (
               <div key={session.id} className="rounded-3xl card p-6 border border-[var(--glass-border)] bg-white/40 backdrop-blur-md">
                 <div className="flex items-start justify-between">
@@ -202,7 +203,7 @@ export default function CoachDashboard() {
                   <div className="text-right">
                     <p className="text-xs uppercase tracking-widest text-[var(--muted)] font-medium mb-1">Disponibilidad</p>
                     <p className={`text-2xl font-black ${available === 0 ? 'text-red-500' : 'text-[var(--brand)]'}`}>
-                      {available} / {session.capacity}
+                      {hasLimit ? `${available} / ${session.capacity}` : "∞"}
                     </p>
                   </div>
                 </div>

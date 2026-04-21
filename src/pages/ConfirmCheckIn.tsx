@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabaseClient";
-import type { ClassSession } from "../lib/types";
+import { fetchActiveMembership } from "../lib/db";
+import type { ClassSession, Membership } from "../lib/types";
 import TopNav from "../components/TopNav";
 import AestheticHeader from "../components/AestheticHeader";
 import { signOut } from "../lib/auth";
@@ -18,13 +19,14 @@ export default function ConfirmCheckIn() {
   const classId = query.get("classId");
   const { session } = useAuth();
   const [sessionInfo, setSessionInfo] = useState<ClassSession | null>(null);
+  const [membership, setMembership] = useState<Membership | null | undefined>(undefined);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!classId) {
+    if (!classId || !session?.user?.id) {
       setLoading(false);
       return;
     }
@@ -32,15 +34,19 @@ export default function ConfirmCheckIn() {
 
     async function fetchData() {
       try {
-        const { data, error } = await (supabase
-          .from("classes")
-          .select("id,class_date,class_time,coach_id,capacity,created_at")
-          .eq("id", classId)
-          .single() as any);
+        const [classRes, activeMembership] = await Promise.all([
+          (supabase
+            .from("classes")
+            .select("id,class_date,class_time,coach_id,capacity,created_at")
+            .eq("id", classId)
+            .single() as any),
+          fetchActiveMembership(session!.user.id),
+        ]);
 
         if (!mounted) return;
-        if (error) throw error;
-        setSessionInfo(data as ClassSession);
+        if (classRes.error) throw classRes.error;
+        setSessionInfo(classRes.data as ClassSession);
+        setMembership(activeMembership);
       } catch (err: any) {
         if (!mounted) return;
         setError(translateError(err));
@@ -54,15 +60,13 @@ export default function ConfirmCheckIn() {
     return () => {
       mounted = false;
     };
-  }, [classId]);
+  }, [classId, session?.user?.id]);
 
   const autoCheckedRef = useRef(false);
 
-  // Auto-checkin logic
   useEffect(() => {
     if (autoCheckedRef.current) return;
     if (sessionInfo && session?.user?.id && !status && !error && !submitting) {
-      // Check if user has an active reservation
       supabase
         .from("reservations")
         .select("id, status")
@@ -71,7 +75,6 @@ export default function ConfirmCheckIn() {
         .single()
         .then(({ data: reservation }) => {
           if (reservation && reservation.status === "reserved") {
-            console.log("Auto-confirming reservation...");
             autoCheckedRef.current = true;
             handleCheckIn();
           }
@@ -86,17 +89,15 @@ export default function ConfirmCheckIn() {
     setStatus(null);
 
     try {
-      // 1. Insert into checkins
       const { error: ciError } = await supabase.from("checkins").insert({
         user_id: session.user.id,
         class_id: classId
       });
 
-      if (ciError && ciError.code !== "23505") { // Ignore uniqueness violation if they already checked in
+      if (ciError && ciError.code !== "23505") {
         throw ciError;
       }
 
-      // 2. Update reservation to 'present' or create one if it doesn't exist
       const { data: existingRes } = await supabase
         .from("reservations")
         .select("id")
@@ -130,12 +131,14 @@ export default function ConfirmCheckIn() {
     }
   }
 
+  const membershipExpired = membership === null;
+
   return (
     <div className="min-h-screen p-4 sm:p-8 pb-52">
       <div className="max-w-md mx-auto space-y-10">
-        <AestheticHeader 
-          title="Confirmar check-in" 
-          subtitle="Ya casi estás. Confirma tu asistencia a la clase elegida." 
+        <AestheticHeader
+          title="Confirmar check-in"
+          subtitle="Ya casi estás. Confirma tu asistencia a la clase elegida."
           badge="Último paso"
           onBack="/select-class"
         />
@@ -150,6 +153,19 @@ export default function ConfirmCheckIn() {
           </div>
         )}
 
+        {/* Alerta de membresía vencida */}
+        {!loading && membershipExpired && (
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex gap-3 items-start">
+            <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-bold text-amber-800">Sin membresía activa</p>
+              <p className="text-xs text-amber-700 mt-0.5">Podés registrar la clase pero avisale a la recepción para renovar.</p>
+            </div>
+          </div>
+        )}
+
         {sessionInfo && (
           <div className="rounded-3xl card p-8 space-y-6 border border-[var(--glass-border)] bg-white/40 backdrop-blur-md">
             <div className="flex justify-between items-center">
@@ -160,8 +176,10 @@ export default function ConfirmCheckIn() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs uppercase tracking-widest text-[var(--muted)] font-bold mb-1">Cupo total</p>
-                <p className="text-3xl font-bold text-[var(--brand)]">{sessionInfo.capacity}</p>
+                <p className="text-xs uppercase tracking-widest text-[var(--muted)] font-bold mb-1">Cupo</p>
+                <p className="text-3xl font-bold text-[var(--brand)]">
+                  {sessionInfo.capacity ?? "∞"}
+                </p>
               </div>
             </div>
             <div className="pt-4 border-t border-[var(--glass-border)]">
@@ -189,8 +207,7 @@ export default function ConfirmCheckIn() {
         </button>
 
         <TopNav role="athlete" onSignOut={() => signOut()} />
-        
-        {/* Spacer for floating Nav */}
+
         <div className="h-40 pointer-events-none" />
       </div>
     </div>

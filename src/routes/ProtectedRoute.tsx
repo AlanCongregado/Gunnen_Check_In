@@ -7,7 +7,7 @@ export default function ProtectedRoute({
   role
 }: {
   children: React.ReactNode;
-  role?: UserRole;
+  role?: UserRole | UserRole[];
 }) {
   const { session, profile, loading } = useAuth();
 
@@ -24,15 +24,19 @@ export default function ProtectedRoute({
   }
 
   if (role) {
+    const allowedRoles = Array.isArray(role) ? role : [role];
+
     if (!profile) {
-      // Si no hay perfil, dejamos entrar a atleta por defecto
-      if (role === "athlete") {
+      if (allowedRoles.includes("athlete")) {
         return <>{children}</>;
       }
       return <Navigate to="/athlete" replace />;
     }
-    if (profile.role !== role) {
-      return <Navigate to="/login" replace />;
+
+    if (!allowedRoles.includes(profile.role)) {
+      if (profile.role === "admin") return <Navigate to="/admin" replace />;
+      if (profile.role === "coach") return <Navigate to="/coach" replace />;
+      return <Navigate to="/athlete" replace />;
     }
   }
 
