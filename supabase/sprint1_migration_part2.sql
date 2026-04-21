@@ -90,7 +90,9 @@ $$;
 -- ============================================================
 -- 5. Actualizar athlete_metrics (14 días at risk + más columnas)
 -- ============================================================
-create or replace view public.athlete_metrics as
+-- DROP necesario porque CREATE OR REPLACE no permite cambiar el orden de columnas
+drop view if exists public.athlete_metrics;
+create view public.athlete_metrics as
 with attendance_stats as (
     select
         user_id,
