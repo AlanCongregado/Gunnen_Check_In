@@ -134,7 +134,7 @@ export default function ClassDetails() {
 
     return {
       total,
-      available: sessionInfo ? Math.max(0, sessionInfo.capacity - total) : 0,
+      available: sessionInfo?.capacity != null ? Math.max(0, sessionInfo.capacity - total) : null,
       injuries: allAthletes.filter(a => a.user?.injuries && a.user.injuries.length > 0).length,
       beginners: countByLevel('beginner') + countByLevel('principiante'),
       intermediates: countByLevel('intermediate') + countByLevel('intermedio'),
@@ -184,7 +184,7 @@ export default function ClassDetails() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-gray-100">
                   <div className="space-y-1">
                     <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Lugares Libres</p>
-                    <p className="text-xl font-bold text-[var(--brand-dark)]">{classMetrics.available}</p>
+                    <p className="text-xl font-bold text-[var(--brand-dark)]">{classMetrics.available ?? "∞"}</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[var(--muted)] text-[9px] uppercase tracking-widest font-black">Lesiones Activas</p>

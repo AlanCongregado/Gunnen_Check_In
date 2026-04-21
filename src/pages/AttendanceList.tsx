@@ -299,8 +299,12 @@ export default function AttendanceList() {
                 <div className="p-4 rounded-2xl bg-white/40 border border-[var(--glass-border)] text-center space-y-1">
                   <p className="text-[9px] uppercase font-bold text-[var(--muted)] tracking-widest">Cupos Libres</p>
                   <p className="text-2xl font-black text-[var(--brand)]">
-                    {classSession ? Math.max(0, classSession.capacity - classMetrics.total) : "..."}
-                    <span className="text-[10px] opacity-40 ml-1">/ {classSession?.capacity || "--"}</span>
+                    {classSession
+                      ? classSession.capacity !== null
+                        ? Math.max(0, classSession.capacity - classMetrics.total)
+                        : "∞"
+                      : "..."}
+                    <span className="text-[10px] opacity-40 ml-1">/ {classSession?.capacity ?? "∞"}</span>
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-[var(--brand)]/5 border border-[var(--brand)]/10 text-center space-y-1">
